@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>บันทึกการเข้าพื้นที่ | Wangpack Plant Access</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0B1E3D;
+    --navy-mid: #162B50;
+    --blue: #1A56DB;
+    --blue-light: #EFF6FF;
+    --accent: #F59E0B;
+    --bg: #F0F4FA;
+    --white: #FFFFFF;
+    --gray: #64748B;
+    --gray-light: #E2E8F0;
+    --red: #EF4444;
+    --green: #10B981;
+    --orange: #F97316;
+    --text: #1E293B;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(11,30,61,0.13);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sarabun','IBM Plex Sans Thai',sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── HEADER ── */
+  .header { background: var(--navy); padding: 16px 18px 14px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,0.3); }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .header-logo { font-size: 10px; color: var(--accent); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px; }
+  .header-title { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.3; }
+  .header-sub { font-size: 11px; color: rgba(255,255,255,0.45); margin-top: 1px; }
+  .clock-box { text-align: right; }
+  .clock-time { font-family: 'IBM Plex Mono',monospace; font-size: 20px; font-weight: 600; color: var(--accent); letter-spacing: 1px; line-height: 1; }
+  .clock-date { font-size: 10px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+
+  /* ── PROGRESS ── */
+  .progress-bar { height: 3px; background: rgba(255,255,255,0.1); }
+  .progress-fill { height: 100%; background: linear-gradient(90deg,var(--blue),var(--accent)); transition: width .4s ease; }
+
+  /* ── STEPS ── */
+  .steps { display: flex; align-items: center; padding: 11px 14px; background: #fff; border-bottom: 1px solid var(--gray-light); overflow-x: auto; }
+  .step-item { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .step-dot { width: 24px; height: 24px; border-radius: 50%; background: var(--gray-light); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--gray); transition: all .3s; }
+  .step-dot.active { background: var(--blue); color: #fff; box-shadow: 0 0 0 3px rgba(26,86,219,.2); }
+  .step-dot.done { background: var(--green); color: #fff; }
+  .step-label { font-size: 10px; color: var(--gray); font-weight: 500; }
+  .step-label.active { color: var(--blue); font-weight: 700; }
+  .step-line { flex: 1; height: 2px; background: var(--gray-light); margin: 0 4px; min-width: 10px; transition: background .3s; }
+  .step-line.done { background: var(--green); }
+
+  /* ── CONTENT ── */
+  .content { padding: 14px 13px 110px; max-width: 480px; margin: 0 auto; }
+
+  /* ── SECTION ── */
+  .section { background: #fff; border-radius: var(--radius); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+  .section-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 3px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .badge { background: var(--navy); color: var(--accent); font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+  .section-sub { font-size: 11px; color: var(--gray); margin-bottom: 13px; }
+
+  /* ── TYPE CARDS ── */
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-top: 4px; }
+  .type-card { border: 2.5px solid var(--gray-light); border-radius: 12px; padding: 15px 10px; text-align: center; cursor: pointer; transition: all .2s; background: var(--bg); position: relative; overflow: hidden; }
+  .type-card:active { transform: scale(.97); }
+  .type-card.selected { border-color: var(--blue); background: rgba(26,86,219,.06); }
+  .type-card .icon { font-size: 28px; margin-bottom: 6px; display: block; }
+  .type-card .label-th { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .type-card .label-en { font-size: 10px; color: var(--gray); margin-top: 2px; }
+  .type-card .chk { position: absolute; top: 7px; right: 7px; width: 17px; height: 17px; border-radius: 50%; background: var(--blue); display: none; align-items: center; justify-content: center; color: #fff; font-size: 9px; }
+  .type-card.selected .chk { display: flex; }
+
+  /* ── STAFF GATE BUTTON ── */
+  .staff-gate-btn { width: 100%; padding: 12px; background: var(--navy); color: var(--accent); border: none; border-radius: 10px; font-family: 'Sarabun',sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 4px; letter-spacing: .3px; }
+
+  /* ── FIELDS ── */
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
+  .field label .en { font-size: 11px; color: var(--gray); font-weight: 400; margin-left: 4px; }
+  .field label .req { color: var(--red); margin-left: 2px; }
+  .field input:not([type="checkbox"]):not([type="radio"]), .field select, .field textarea {
+    width: 100%; padding: 11px 12px; border: 1.5px solid var(--gray-light); border-radius: 10px;
+    font-family: 'Sarabun',sans-serif; font-size: 14px; color: var(--text);
+    background: var(--bg); transition: border-color .2s; -webkit-appearance: none; outline: none;
+  }
+  .field input:not([type="checkbox"]):not([type="radio"]):focus, .field select:focus, .field textarea:focus { border-color: var(--blue); background: #fff; box-shadow: 0 0 0 3px rgba(26,86,219,.1); }
+  .field textarea { resize: none; height: 72px; }
+
+  /* ── TIME DISPLAY ── */
+  .time-display { width: 100%; padding: 10px 12px; border: 2px solid var(--blue); border-radius: 10px; background: rgba(26,86,219,.05); font-family: 'IBM Plex Mono',monospace; font-size: 20px; font-weight: 600; color: var(--blue); text-align: center; letter-spacing: 3px; }
+
+  /* ── CHECK GROUP ── */
+  .check-group { display: flex; flex-direction: column; gap: 7px; }
+  .check-item { display: flex; align-items: flex-start; gap: 9px; background: var(--bg); border-radius: 10px; padding: 10px; border: 1.5px solid transparent; cursor: pointer; transition: all .2s; -webkit-tap-highlight-color: transparent; }
+  .check-item input[type="checkbox"] { width: 20px; height: 20px; min-width: 20px; flex-shrink: 0; accent-color: var(--blue); margin-top: 1px; cursor: pointer; -webkit-appearance: checkbox; appearance: checkbox; }
+  .check-item .text-th { font-size: 13px; font-weight: 600; color: var(--text); pointer-events: none; display: block; }
+  .check-item .text-en { font-size: 11px; color: var(--gray); margin-top: 1px; pointer-events: none; display: block; }
+  .check-item:has(input:checked) { background: rgba(26,86,219,.06); border-color: rgba(26,86,219,.25); }
+
+  /* ── RADIO GROUP ── */
+  .radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .radio-btn { flex: 1; min-width: 80px; padding: 9px 7px; border-radius: 10px; border: 1.5px solid var(--gray-light); text-align: center; cursor: pointer; transition: all .2s; background: var(--bg); }
+  .radio-btn input { display: none; }
+  .radio-btn .t { font-size: 12px; font-weight: 600; color: var(--navy); }
+  .radio-btn .e { font-size: 10px; color: var(--gray); }
+  .radio-btn:has(input:checked) { border-color: var(--blue); background: rgba(26,86,219,.08); }
+  .radio-btn:has(input:checked) .t { color: var(--blue); }
+
+  /* ── PPE GRID ── */
+  .ppe-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+
+  /* ── EXTRA TEXT INPUT ── */
+  .extra-input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--gray-light); border-radius: 10px; font-family: 'Sarabun',sans-serif; font-size: 13px; color: var(--text); background: var(--bg); outline: none; margin-top: 7px; transition: border-color .2s; }
+  .extra-input:focus { border-color: var(--blue); background: #fff; }
+
+  /* ── RULES BOX ── */
+  .rules-box { background: var(--navy); border-radius: var(--radius); padding: 15px; margin-bottom: 12px; }
+  .rules-title { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 10px; letter-spacing: .5px; text-transform: uppercase; }
+  .rules-box ol { list-style: none; display: flex; flex-direction: column; gap: 7px; counter-reset: rc; }
+  .rules-box li { font-size: 11.5px; color: rgba(255,255,255,.85); display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; counter-increment: rc; }
+  .rules-box li::before { content: counter(rc); background: var(--accent); color: var(--navy); font-size: 9px; font-weight: 700; width: 17px; height: 17px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+
+  /* ── WARN / INFO BOX ── */
+  .warn-box { background: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+  .warn-title { font-size: 12px; font-weight: 700; color: #C2410C; margin-bottom: 7px; display: flex; align-items: center; gap: 6px; }
+  .warn-box ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+  .warn-box li { font-size: 11.5px; color: #7C2D12; display: flex; align-items: flex-start; gap: 7px; line-height: 1.4; }
+  .warn-box li::before { content: "•"; color: var(--orange); font-weight: 700; flex-shrink: 0; }
+  .info-box { background: #EFF6FF; border: 1.5px solid #BFDBFE; border-radius: 10px; padding: 11px 13px; margin-bottom: 12px; font-size: 12px; color: #1E40AF; line-height: 1.5; }
+
+  /* ── FORM BADGE ── */
+  .form-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--navy); color: var(--accent); font-size: 10px; font-weight: 700; padding: 5px 11px; border-radius: 20px; margin-bottom: 12px; letter-spacing: .5px; }
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--gray-light); margin: 11px 0; }
+
+  /* ── BOTTOM BAR ── */
+  .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 11px 14px 20px; box-shadow: 0 -4px 20px rgba(0,0,0,.1); z-index: 100; }
+  .btn-next { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; font-family: 'Sarabun',sans-serif; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-next:active { transform: scale(.98); background: var(--navy); }
+  .btn-next:disabled { background: var(--gray-light); color: var(--gray); cursor: not-allowed; }
+  .btn-back { background: none; border: none; color: var(--gray); font-family: 'Sarabun',sans-serif; font-size: 13px; padding: 6px; cursor: pointer; width: 100%; margin-top: 4px; }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── SUCCESS ── */
+  .success-screen { text-align: center; padding: 36px 20px; }
+  .success-icon { width: 74px; height: 74px; background: var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px; animation: pop .4s ease; }
+  @keyframes pop { 0%{transform:scale(0)} 70%{transform:scale(1.1)} 100%{transform:scale(1)} }
+  .success-title { font-size: 20px; font-weight: 700; color: var(--navy); margin-bottom: 5px; }
+  .success-sub { font-size: 13px; color: var(--gray); line-height: 1.6; margin-bottom: 16px; }
+  .ref-code { background: var(--navy); color: var(--accent); border-radius: 8px; padding: 9px 16px; font-size: 17px; font-weight: 700; letter-spacing: 2px; margin-bottom: 16px; display: inline-block; font-family: 'IBM Plex Mono',monospace; }
+  .record-card { background: var(--bg); border-radius: 12px; padding: 13px; text-align: left; margin-bottom: 16px; }
+  .record-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid var(--gray-light); gap: 8px; }
+  .record-row:last-child { border-bottom: none; }
+  .record-key { font-size: 11px; color: var(--gray); font-weight: 500; flex-shrink: 0; }
+  .record-val { font-size: 13px; font-weight: 600; color: var(--navy); text-align: right; }
+  .pending-notice { background: #FFF7ED; border: 1.5px solid #FED7AA; border-radius: 10px; padding: 11px; margin-bottom: 14px; font-size: 12px; color: #92400E; line-height: 1.5; }
+  .btn-new { background: var(--navy); color: #fff; border: none; border-radius: 12px; padding: 13px 32px; font-size: 14px; font-weight: 700; font-family: 'Sarabun',sans-serif; cursor: pointer; width: 100%; }
+
+  /* ════════════════════════════════════════════
+     STAFF PANEL
+  ════════════════════════════════════════════ */
+  #screenStaff { display: none; min-height: 100vh; }
+  .staff-header-bar { background: var(--navy); padding: 16px 18px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,.3); }
+  .staff-header-bar .s-logo { font-size: 10px; color: var(--accent); font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px; }
+  .staff-header-bar .s-title { font-size: 15px; font-weight: 700; color: #fff; }
+  .staff-header-bar .s-sub { font-size: 11px; color: rgba(255,255,255,.45); }
+  .staff-back-btn { background: rgba(255,255,255,.12); border: none; color: rgba(255,255,255,.75); font-family: 'Sarabun',sans-serif; font-size: 12px; font-weight: 600; padding: 7px 13px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+  .staff-content { padding: 14px 13px 30px; max-width: 480px; margin: 0 auto; }
+
+  .staff-section { background: #fff; border-radius: var(--radius); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); }
+  .staff-section-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  .staff-section-sub { font-size: 11px; color: var(--gray); margin-bottom: 12px; }
+
+  .entry-list { display: flex; flex-direction: column; gap: 9px; }
+  .entry-card { background: var(--bg); border-radius: 12px; padding: 13px; border: 1.5px solid var(--gray-light); }
+  .entry-card .e-ref { font-family: 'IBM Plex Mono',monospace; font-size: 11px; color: var(--blue); font-weight: 600; }
+  .entry-card .e-name { font-size: 14px; font-weight: 700; color: var(--navy); margin: 2px 0; }
+  .entry-card .e-meta { font-size: 11px; color: var(--gray); }
+  .entry-card .e-approver { font-size: 11px; color: var(--green); margin-top: 3px; }
+  .entry-card-actions { display: flex; gap: 7px; margin-top: 10px; }
+  .btn-approve-in { flex: 1; padding: 10px; background: var(--green); color: #fff; border: none; border-radius: 9px; font-family: 'Sarabun',sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .btn-approve-out { flex: 1; padding: 10px; background: var(--accent); color: var(--navy); border: none; border-radius: 9px; font-family: 'Sarabun',sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+  .pill { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+  .pill-pending { background: var(--gray-light); color: var(--gray); }
+  .pill-inside { background: #DCFCE7; color: #15803D; }
+  .pill-exited { background: #F1F5F9; color: var(--gray); }
+
+  .empty-state { text-align: center; padding: 24px; color: var(--gray); font-size: 13px; }
+
+  /* ── PASSWORD MODAL ── */
+  .pw-overlay { position: fixed; inset: 0; background: rgba(11,30,61,.85); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .pw-overlay.open { display: flex; }
+  .pw-box { background: #fff; border-radius: 18px; padding: 28px 24px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+  .pw-icon { font-size: 40px; margin-bottom: 10px; }
+  .pw-title { font-size: 17px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .pw-sub { font-size: 12px; color: var(--gray); margin-bottom: 18px; }
+  .pw-input { width: 100%; padding: 13px 14px; border: 2px solid var(--gray-light); border-radius: 11px; font-family: 'Sarabun',sans-serif; font-size: 18px; text-align: center; letter-spacing: 8px; outline: none; transition: border-color .2s; }
+  .pw-input:focus { border-color: var(--blue); }
+  .pw-error { font-size: 12px; color: var(--red); margin-top: 8px; height: 16px; }
+  .pw-btn { width: 100%; margin-top: 14px; padding: 13px; background: var(--navy); color: var(--accent); border: none; border-radius: 11px; font-family: 'Sarabun',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .pw-cancel { width: 100%; margin-top: 8px; padding: 10px; background: none; color: var(--gray); border: none; font-family: 'Sarabun',sans-serif; font-size: 13px; cursor: pointer; }
+
+  /* ── DEPT SELECT ── */
+  .dept-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+  .dept-btn { border: 2px solid var(--gray-light); border-radius: 10px; padding: 10px 8px; text-align: center; cursor: pointer; transition: all .2s; background: var(--bg); font-size: 13px; font-weight: 600; color: var(--navy); }
+  .dept-btn.selected { border-color: var(--blue); background: rgba(26,86,219,.08); color: var(--blue); }
+  .dept-btn .dept-en { font-size: 10px; color: var(--gray); font-weight: 400; margin-top: 2px; }
+
+  /* ── CANCEL/EDIT BUTTONS ── */
+  .btn-cancel-rec { flex: 1; padding: 8px; background: #FEF2F2; color: var(--red); border: 1.5px solid #FCA5A5; border-radius: 9px; font-family: 'Sarabun',sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .btn-edit-rec { flex: 1; padding: 8px; background: #EFF6FF; color: var(--blue); border: 1.5px solid #BFDBFE; border-radius: 9px; font-family: 'Sarabun',sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .e-remark { font-size: 11px; color: var(--orange); margin-top: 3px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(11,30,61,.6); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-width: 480px; padding: 22px 18px 34px; max-height: 80vh; overflow-y: auto; }
+  .modal h3 { font-size: 16px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  .modal-desc { font-size: 12px; color: var(--gray); margin-bottom: 12px; }
+  .modal-ref { font-family: 'IBM Plex Mono',monospace; font-size: 12px; color: var(--blue); background: var(--bg); padding: 8px 11px; border-radius: 8px; margin-bottom: 14px; }
+  .modal-field { margin-bottom: 12px; }
+  .modal-field label { display: block; font-size: 12px; font-weight: 600; color: var(--navy); margin-bottom: 5px; }
+  .modal-field input { width: 100%; padding: 11px 12px; border: 1.5px solid var(--gray-light); border-radius: 10px; font-family: 'Sarabun',sans-serif; font-size: 14px; color: var(--text); background: var(--bg); outline: none; transition: border-color .2s; }
+  .modal-field input:focus { border-color: var(--blue); background: #fff; }
+  .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 14px; }
+  .modal-btn { padding: 13px; border-radius: 11px; border: none; font-family: 'Sarabun',sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all .2s; }
+  .modal-btn-confirm { background: var(--green); color: #fff; }
+  .modal-btn-confirm.exit { background: var(--accent); color: var(--navy); }
+  .modal-btn-cancel { background: var(--gray-light); color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN A — VISITOR FORM
+════════════════════════════════════════════════════════ -->
+<div id="screenForm">
+
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="header-logo">Wang Pack Co., Ltd.</div>
+        <div class="header-title">บันทึกการเข้าพื้นที่ผลิต</div>
+        <div class="header-sub">Plant Access Registration</div>
+      </div>
+      <div class="clock-box">
+        <div class="clock-time" id="clock">--:--:--</div>
+        <div class="clock-date" id="clockDate"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+  <div class="steps" id="stepsBar">
+    <div class="step-item"><div class="step-dot active" id="dot1">1</div><div class="step-label active" id="lbl1">ประเภท</div></div>
+    <div class="step-line" id="line1"></div>
+    <div class="step-item"><div class="step-dot" id="dot2">2</div><div class="step-label" id="lbl2">ข้อมูล</div></div>
+    <div class="step-line" id="line2"></div>
+    <div class="step-item"><div class="step-dot" id="dot3">3</div><div class="step-label" id="lbl3">ความปลอดภัย</div></div>
+    <div class="step-line" id="line3"></div>
+    <div class="step-item"><div class="step-dot" id="dot4">4</div><div class="step-label" id="lbl4">ยืนยัน</div></div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── PAGE 1: TYPE SELECTION ── -->
+    <div class="page active" id="page1">
+      <div class="section">
+        <div class="section-title">ประเภทการเข้าพื้นที่ <span class="badge">STEP 1</span></div>
+        <div class="section-sub">กรุณาเลือกประเภทผู้เข้าพื้นที่ / Please select visitor type</div>
+        <div class="type-grid">
+          <div class="type-card" id="typeContractor" onclick="selectType('contractor')">
+            <span class="icon">🔧</span>
+            <div class="label-th">ช่างภายนอก</div>
+            <div class="label-en">Contractor / Technician</div>
+            <div class="chk">✓</div>
+          </div>
+          <div class="type-card" id="typeVisitor" onclick="selectType('visitor')">
+            <span class="icon">👤</span>
+            <div class="label-th">ผู้เยี่ยมชม</div>
+            <div class="label-en">Visitor / Auditor</div>
+            <div class="chk">✓</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="typeInfo" style="display:none">
+        <div class="info-box" id="typeInfoText"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title" style="margin-bottom:8px;">🔒 เจ้าหน้าที่บริษัท / Staff Only</div>
+        <button class="staff-gate-btn" onclick="goToStaff()">เข้าสู่ระบบควบคุมการเข้า-ออกพื้นที่ →</button>
+      </div>
+    </div>
+
+    <!-- ── PAGE 2: PERSONAL INFO + WORK PERMIT ── -->
+    <div class="page" id="page2">
+
+      <!-- REGULATIONS (contractor only) -->
+      <div id="contractorRules" style="display:none">
+        <div class="rules-box">
+          <div class="rules-title">📋 ข้อปฏิบัติการเข้าพื้นที่ผลิต / Plant Entry Regulations</div>
+          <ol>
+            <li>ปฏิบัติตามกฎระเบียบของบริษัทฯ และคำแนะนำของเจ้าหน้าที่อย่างเคร่งครัด — Strictly comply with company regulations and staff instructions</li>
+            <li>ห้ามสูบบุหรี่ในอาคารและบริเวณรอบพื้นที่ เว้นแต่บริเวณที่กำหนด — No smoking inside or around the facility except designated areas</li>
+            <li>แต่งกายให้เรียบร้อย สวมรองเท้าหุ้มส้น ห้ามใส่รองเท้าแตะโดยเด็ดขาด — Proper attire; closed-toe shoes required; sandals strictly prohibited</li>
+            <li>สวมอุปกรณ์ป้องกันภัยส่วนบุคคล (PPE) ที่เหมาะสมกับลักษณะงานทุกครั้ง — Always wear appropriate PPE for the type of work</li>
+            <li>กำหนดเขตพื้นที่ปฏิบัติงานให้ชัดเจน ติดป้ายเตือนอันตรายทุกครั้ง — Clearly mark work zone and install warning signs every time</li>
+            <li>แสดงใบอนุญาตการปฏิบัติงานที่หน้างานตลอดเวลาที่ทำงาน — Display work permit at the work site at all times</li>
+            <li>งานก่อประกายไฟหรือความร้อน ต้องได้รับอนุญาตจากเจ้าของพื้นที่และเจ้าหน้าที่ความปลอดภัยก่อน — Hot work requires prior authorization from site owner and safety officer</li>
+            <li>ห้ามใช้อุปกรณ์ที่ชำรุดในการปฏิบัติงาน — Do not use damaged or defective equipment</li>
+            <li>เมื่อเกิดอุบัติเหตุ รายงานเจ้าของพื้นที่และเจ้าหน้าที่ความปลอดภัยทันที — Report all accidents immediately to the site owner and safety officer</li>
+            <li>เมื่อได้ยินสัญญาณเตือนภัย ให้รีบไปที่จุดรวมพลตามแผนอพยพของบริษัทฯ — On alarm, proceed immediately to assembly point per evacuation plan</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- PERSONAL INFO -->
+      <div class="section">
+        <div class="section-title">ข้อมูลส่วนตัว <span class="badge">STEP 2</span></div>
+        <div class="section-sub">Personal Information</div>
+
+        <div class="field">
+          <label>ชื่อ-สกุล <span class="en">Full Name</span><span class="req">*</span></label>
+          <input type="text" id="name" placeholder="กรอกชื่อ-นามสกุล / Full name">
+        </div>
+        <div class="field">
+          <label>บริษัท / หน่วยงาน <span class="en">Company / Organization</span><span class="req">*</span></label>
+          <input type="text" id="company" placeholder="ชื่อบริษัท / Company name">
+        </div>
+        <div class="field">
+          <label>วันที่เข้าพื้นที่ <span class="en">Visit Date</span><span class="req">*</span></label>
+          <input type="date" id="visitDate">
+        </div>
+        <div class="field">
+          <label>เวลาเข้าพื้นที่ <span class="en">Entry Time (real-time)</span></label>
+          <div class="time-display" id="entryTimePicker">--:--:--</div>
+          <input type="hidden" id="entryTime">
+        </div>
+        <div class="field">
+          <label>วัตถุประสงค์ <span class="en">Purpose of Visit</span><span class="req">*</span></label>
+          <textarea id="purpose" placeholder="ระบุวัตถุประสงค์ / State purpose of visit"></textarea>
+        </div>
+        <div class="field">
+          <label>แผนกที่จะเข้า <span class="en">Production Area / Department</span><span class="req">*</span></label>
+          <div class="dept-grid">
+            <div class="dept-btn" id="dept_blow" onclick="selectDept('blow')">
+              แผนกเป่า
+              <div class="dept-en">Blow Department</div>
+            </div>
+            <div class="dept-btn" id="dept_print" onclick="selectDept('print')">
+              แผนกพิมพ์
+              <div class="dept-en">Print Department</div>
+            </div>
+            <div class="dept-btn" id="dept_cut" onclick="selectDept('cut')">
+              แผนกตัดสลีด
+              <div class="dept-en">Cut/Sleed Department</div>
+            </div>
+            <div class="dept-btn" id="dept_other" onclick="selectDept('other_dept')">
+              อื่นๆ โปรดระบุ
+              <div class="dept-en">Other — specify</div>
+            </div>
+          </div>
+          <div id="deptOtherField" style="display:none; margin-top:8px;">
+            <input type="text" id="deptOtherText" class="extra-input" placeholder="ระบุแผนก/พื้นที่ / Specify area">
+          </div>
+        </div>
+      </div>
+
+      <!-- WORK PERMIT (contractor only) -->
+      <div id="contractorFields" style="display:none">
+        <div class="section">
+          <div class="form-badge">📋 แบบฟอร์มขออนุญาตทำงานในพื้นที่ / Work Permit</div>
+
+          <div class="field">
+            <label>จำนวนผู้ปฏิบัติงาน <span class="en">Number of Workers</span><span class="req">*</span></label>
+            <input type="number" id="workerCount" placeholder="จำนวน (คน)" min="1">
+          </div>
+
+          <div class="field">
+            <label>ประเภทงาน <span class="en">Work Type</span><span class="req">*</span></label>
+            <div class="radio-group">
+              <label class="radio-btn">
+                <input type="radio" name="workType" value="install">
+                <div class="t">ติดตั้งใหม่</div><div class="e">New Install</div>
+              </label>
+              <label class="radio-btn">
+                <input type="radio" name="workType" value="repair">
+                <div class="t">ซ่อมบำรุง</div><div class="e">Maintenance</div>
+              </label>
+              <label class="radio-btn">
+                <input type="radio" name="workType" value="other_wt">
+                <div class="t">อื่นๆ</div><div class="e">Other</div>
+              </label>
+            </div>
+            <div id="workTypeOtherField" style="display:none; margin-top:8px;">
+              <input type="text" id="workTypeOther" class="extra-input" placeholder="ระบุประเภทงาน / Specify work type">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>ลักษณะงาน <span class="en">Work Activities</span> <span style="font-size:10px;color:var(--blue);font-weight:600">(เลือกได้หลายข้อ)</span></label>
+            <div class="check-group">
+              <label class="check-item">
+                <input type="checkbox" name="activity" value="drill">
+                <span><span class="text-th">เจาะสว่าน</span><span class="text-en">Drilling</span></span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" name="activity" value="weld">
+                <span><span class="text-th">เชื่อมไฟฟ้า</span><span class="text-en">Electric Welding</span></span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" name="activity" value="cut">
+                <span><span class="text-th">ตัด / เจียร</span><span class="text-en">Cutting / Grinding</span></span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" name="activity" value="excavate">
+                <span><span class="text-th">ขุดเจาะ</span><span class="text-en">Excavation</span></span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" name="activity" value="radiation">
+                <span><span class="text-th">งานรังสี</span><span class="text-en">Radiation Work</span></span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" name="activity" value="electrical">
+                <span><span class="text-th">งานไฟฟ้า</span><span class="text-en">Electrical Work</span></span>
+              </label>
+              <label class="check-item">
+                <input type="checkbox" name="activity" value="height">
+                <span><span class="text-th">ทำงานบนที่สูง / ตั้งนั่งร้าน</span><span class="text-en">Work at Height / Scaffolding</span></span>
+              </label>
+              <label class="check-item" id="actOtherItem">
+                <input type="checkbox" name="activity" value="other_act" id="actOtherChk">
+                <span><span class="text-th">อื่นๆ โปรดระบุ</span><span class="text-en">Other — please specify</span></span>
+              </label>
+            </div>
+            <div id="actOtherField" style="display:none">
+              <input type="text" id="actOtherText" class="extra-input" placeholder="ระบุลักษณะงานอื่นๆ / Specify other activities">
+            </div>
+          </div>
+
+          <div class="field">
+            <label>มีเจ้าหน้าที่ความปลอดภัย (จป. / หัวหน้างาน)?</label>
+            <div class="radio-group">
+              <label class="radio-btn">
+                <input type="radio" name="hasSafety" value="yes">
+                <div class="t">มี / Yes</div>
+              </label>
+              <label class="radio-btn">
+                <input type="radio" name="hasSafety" value="no">
+                <div class="t">ไม่มี / No</div>
+              </label>
+            </div>
+          </div>
+          <div id="safetyOfficerField" style="display:none">
+            <div class="field">
+              <label>ชื่อ จป. / หัวหน้างาน <span class="en">Safety Officer Name</span></label>
+              <input type="text" id="safetyOfficer" placeholder="ชื่อ จป./หัวหน้างาน">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE 3: SAFETY CHECKLIST + PPE ── -->
+    <div class="page" id="page3">
+      <div class="warn-box">
+        <div class="warn-title">⚠️ ข้อกำหนดด้านความปลอดภัย / Safety Requirements</div>
+        <ul>
+          <li>ถอดเครื่องประดับทุกชนิด (ต่างหู แหวน สร้อย) เก็บไว้ในกระเป๋าหรือล็อกเกอร์ — Remove all jewelry; store in pocket or locker</li>
+          <li>เดินเป็นกลุ่ม ห้ามล้ำเส้นเหลืองแบ่งเขตเครื่องจักร — Walk in group; do not cross yellow safety lines</li>
+          <li>ล้างมือ ฆ่าเชื้อ ดูดฝุ่นจากเสื้อผ้าและรองเท้า ณ จุดเข้าพื้นที่ — Hand wash, sanitize, and remove dust at gate station</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <div class="section-title">ตรวจสอบสุขลักษณะ <span class="badge">STEP 3</span></div>
+        <div class="section-sub">Health Check / การตรวจก่อนเข้าพื้นที่</div>
+
+        <div class="field">
+          <label>ใส่แว่นตา / Contact Lens?</label>
+          <div class="radio-group">
+            <label class="radio-btn"><input type="radio" name="glasses" value="yes"><div class="t">ใช่ / Yes</div></label>
+            <label class="radio-btn"><input type="radio" name="glasses" value="no"><div class="t">ไม่ใช่ / No</div></label>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="field">
+          <label>เดินทางกลับจากต่างประเทศใน 7 วัน?<br><span class="en" style="font-weight:400">Country visit within 7 days?</span></label>
+          <div class="radio-group">
+            <label class="radio-btn"><input type="radio" name="travel" value="yes"><div class="t">ใช่ / Yes</div></label>
+            <label class="radio-btn"><input type="radio" name="travel" value="no"><div class="t">ไม่ใช่ / No</div></label>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="field">
+          <label>มีอาการไข้ ไอ จาม ท้องเสีย?<br><span class="en" style="font-weight:400">Fever / Cough / Diarrhea?</span></label>
+          <div class="radio-group">
+            <label class="radio-btn"><input type="radio" name="sick" value="yes"><div class="t">มี / Yes</div></label>
+            <label class="radio-btn"><input type="radio" name="sick" value="no"><div class="t">ไม่มี / No</div></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- PPE (contractor only) -->
+      <div id="ppeSec" style="display:none">
+        <div class="section">
+          <div class="section-title">อุปกรณ์ป้องกันภัยส่วนบุคคล (PPE)</div>
+          <div class="section-sub">เลือกอุปกรณ์ที่เตรียมมา / Select PPE brought to site (เลือกได้หลายข้อ)</div>
+
+          <div class="ppe-grid">
+            <label class="check-item">
+              <input type="checkbox" name="ppe" value="glasses">
+              <span><span class="text-th">แว่นตา</span><span class="text-en">Safety Glasses</span></span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="ppe" value="weldglasses">
+              <span><span class="text-th">แว่นสำหรับเชื่อมเหล็ก</span><span class="text-en">Welding Goggles</span></span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="ppe" value="gloves">
+              <span><span class="text-th">ถุงมือผ้า</span><span class="text-en">Fabric Gloves</span></span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="ppe" value="electricgloves">
+              <span><span class="text-th">ถุงมือยางไฟฟ้า</span><span class="text-en">Electrical Rubber Gloves</span></span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="ppe" value="helmet">
+              <span><span class="text-th">หมวกนิรภัย</span><span class="text-en">Safety Helmet</span></span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="ppe" value="boots">
+              <span><span class="text-th">รองเท้านิรภัย</span><span class="text-en">Safety Boots</span></span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="ppe" value="heightkit">
+              <span><span class="text-th">อุปกรณ์นิรภัยที่สูง</span><span class="text-en">Height Safety Kit</span></span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="ppe" value="vest">
+              <span><span class="text-th">เสื้อสะท้อนแสง</span><span class="text-en">Reflective Vest</span></span>
+            </label>
+            <label class="check-item">
+              <input type="checkbox" name="ppe" value="mask">
+              <span><span class="text-th">หน้ากาก</span><span class="text-en">Face Mask</span></span>
+            </label>
+            <label class="check-item" id="ppeOtherItem">
+              <input type="checkbox" name="ppe" value="ppe_other" id="ppeOtherChk">
+              <span><span class="text-th">อื่นๆ โปรดระบุ</span><span class="text-en">Other — specify</span></span>
+            </label>
+          </div>
+          <div id="ppeOtherField" style="display:none">
+            <input type="text" id="ppeOtherText" class="extra-input" placeholder="ระบุอุปกรณ์อื่นๆ / Specify other PPE">
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="field">
+            <label>อุปกรณ์ที่ต้องการให้บริษัทฯ เตรียม / ขอยืม<br><span class="en" style="font-weight:400">Equipment to borrow from Wangpack</span></label>
+            <textarea id="borrowEquipment" placeholder="ระบุอุปกรณ์ที่ต้องการให้บริษัทเตรียมให้หรือขอยืมใช้ในการทำงาน&#10;List equipment you need the company to prepare or lend for this job"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE 4: CONFIRM & SUBMIT ── -->
+    <div class="page" id="page4">
+      <div class="section">
+        <div class="section-title">ยืนยันข้อมูล <span class="badge">STEP 4</span></div>
+        <div class="section-sub">ตรวจสอบข้อมูลก่อนส่ง / Review before submitting</div>
+        <div id="summaryContent"></div>
+      </div>
+
+      <div class="warn-box">
+        <div class="warn-title">📋 ข้อตกลงและเงื่อนไข / Terms & Conditions</div>
+        <ul>
+          <li>ข้าพเจ้ายินยอมปฏิบัติตามกฎระเบียบความปลอดภัยของบริษัท วังแพค จำกัด อย่างเคร่งครัด</li>
+          <li>I agree to comply with all safety regulations of Wangpack Co., Ltd.</li>
+          <li>หากฝ่าฝืน บริษัทฯ ขอสงวนสิทธิ์ในการสั่งหยุดการปฏิบัติงานหรือยกเลิกสัญญา</li>
+          <li>Non-compliance may result in immediate work suspension or contract termination.</li>
+        </ul>
+      </div>
+
+      <label class="check-item" style="background:#F0FDF4; border:1.5px solid #BBF7D0; margin-bottom:14px;">
+        <input type="checkbox" id="agreeCheck" onchange="toggleSubmit()">
+        <div>
+          <div class="text-th" style="color:#15803D;">ข้าพเจ้ายอมรับเงื่อนไขข้างต้นทุกข้อ</div>
+          <div class="text-en">I accept all terms and conditions above</div>
+        </div>
+      </label>
+    </div>
+
+    <!-- ── SUCCESS PAGE ── -->
+    <div class="page" id="pageSuccess">
+      <div class="success-screen">
+        <div class="success-icon">✓</div>
+        <div class="success-title">บันทึกสำเร็จ!</div>
+        <div class="success-sub">ข้อมูลของคุณถูกบันทึกเรียบร้อยแล้ว<br>Your entry has been recorded successfully.</div>
+        <div class="pending-notice">
+          ⏳ กรุณารอเจ้าหน้าที่ตรวจสอบและอนุมัติการเข้าพื้นที่<br>
+          <em style="font-size:11px">Please wait for staff verification and entry approval.</em>
+        </div>
+        <div class="ref-code" id="refCode">REF: ------</div>
+        <div class="record-card" id="recordCard"></div>
+        <button class="btn-new" onclick="resetForm()">+ บันทึกรายการใหม่ / New Entry</button>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <div class="bottom-bar" id="bottomBar">
+    <button class="btn-next" id="btnNext" onclick="nextStep()" disabled>ถัดไป / Next →</button>
+    <button class="btn-back" id="btnBack" onclick="prevStep()" style="display:none">← ย้อนกลับ / Back</button>
+  </div>
+
+</div><!-- /screenForm -->
+
+
+<!-- ════════════════════════════════════════════════════════
+     SCREEN B — STAFF GATE CONTROL
+════════════════════════════════════════════════════════ -->
+<div id="screenStaff">
+  <div class="staff-header-bar">
+    <button class="staff-back-btn" onclick="goToForm()">← ย้อนกลับ / Back</button>
+    <div class="s-logo">Wang Pack Co., Ltd. — Staff Panel</div>
+    <div class="s-title">🔒 ระบบควบคุมการเข้า-ออกพื้นที่</div>
+    <div class="s-sub">Gate Control · Approval System</div>
+  </div>
+
+  <div class="staff-content">
+
+    <div class="staff-section">
+      <div class="staff-section-title">⏳ รายการรออนุมัติเข้าพื้นที่</div>
+      <div class="staff-section-sub">Pending Entry Approvals (วันนี้)</div>
+      <div class="entry-list" id="listPending">
+        <div class="empty-state">ไม่มีรายการรออนุมัติ</div>
+      </div>
+    </div>
+
+    <div class="staff-section">
+      <div class="staff-section-title">✅ อยู่ในพื้นที่ขณะนี้ (Inside)</div>
+      <div class="staff-section-sub">Currently inside the plant area</div>
+      <div class="entry-list" id="listInside">
+        <div class="empty-state">ไม่มีผู้เข้าพื้นที่ในขณะนี้</div>
+      </div>
+    </div>
+
+    <div class="staff-section">
+      <div class="staff-section-title">🚪 ออกพื้นที่แล้ว (Exited Today)</div>
+      <div class="staff-section-sub">Records of exits today</div>
+      <div class="entry-list" id="listExited">
+        <div class="empty-state">ยังไม่มีรายการออกพื้นที่วันนี้</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:4px;">
+      <button onclick="goToForm()" style="padding:13px; background:var(--blue); color:#fff; border:none; border-radius:12px; font-family:'Sarabun',sans-serif; font-size:14px; font-weight:700; cursor:pointer;">+ บันทึกใหม่</button>
+      <button onclick="loadStaffLists()" style="padding:13px; background:var(--gray-light); color:var(--text); border:none; border-radius:12px; font-family:'Sarabun',sans-serif; font-size:14px; font-weight:700; cursor:pointer;">🔄 รีเฟรช</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL ── -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">อนุมัติการเข้าพื้นที่</h3>
+    <div class="modal-desc" id="modalDesc"></div>
+    <div class="modal-ref" id="modalRef"></div>
+    <div class="modal-field">
+      <label>ชื่อผู้อนุมัติ / Approver Name <span style="color:var(--red)">*</span></label>
+      <input type="text" id="approverName" placeholder="ชื่อเจ้าหน้าที่ผู้อนุมัติ">
+    </div>
+    <div class="modal-field" id="exitRemarkField" style="display:none">
+      <label>หมายเหตุการออก <span style="font-size:11px;color:var(--gray);font-weight:400">/ Exit Remarks (optional)</span></label>
+      <input type="text" id="exitRemark" placeholder="หมายเหตุ (ถ้ามี)">
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-confirm" id="modalConfirmBtn" onclick="confirmAction()">✓ ยืนยัน</button>
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CANCEL/EDIT RECORD MODAL ── -->
+<div class="modal-overlay" id="cancelModalOverlay">
+  <div class="modal">
+    <h3 id="cancelModalTitle" style="color:var(--navy); font-size:15px; margin-bottom:6px;">แก้ไข / ยกเลิกรายการ</h3>
+    <div class="modal-ref" id="cancelModalRef" style="margin-bottom:12px;"></div>
+    <div class="modal-field">
+      <label>ชื่อผู้ดำเนินการ <span style="color:var(--red)">*</span></label>
+      <input type="text" id="cancelOperatorName" placeholder="ชื่อเจ้าหน้าที่">
+    </div>
+    <div class="modal-field">
+      <label>เหตุผล / หมายเหตุ <span style="color:var(--red)">*</span></label>
+      <input type="text" id="cancelReason" placeholder="ระบุเหตุผล">
+    </div>
+    <div id="cancelActionBtns" style="display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;">
+      <button class="modal-btn" style="flex:1; background:var(--red); color:#fff;" id="cancelConfirmBtn" onclick="confirmCancel()">🗑️ ยกเลิกรายการ</button>
+      <button class="modal-btn" style="flex:1; background:var(--blue); color:#fff;" id="editConfirmBtn" onclick="confirmEdit()">✏️ รีเซ็ตสถานะ</button>
+    </div>
+    <button class="modal-btn modal-btn-cancel" style="width:100%; margin-top:8px;" onclick="closeCancelModal()">ปิด</button>
+  </div>
+</div>
+
+<!-- ── PASSWORD MODAL ── -->
+<div class="pw-overlay" id="pwOverlay">
+  <div class="pw-box">
+    <div class="pw-icon">🔒</div>
+    <div class="pw-title">เข้าสู่ระบบเจ้าหน้าที่</div>
+    <div class="pw-sub">กรุณาใส่รหัสผ่าน / Enter staff password</div>
+    <input type="password" class="pw-input" id="pwInput" placeholder="••••" maxlength="10" onkeydown="if(event.key==='Enter') checkPassword()">
+    <div class="pw-error" id="pwError"></div>
+    <button class="pw-btn" onclick="checkPassword()">เข้าสู่ระบบ →</button>
+    <button class="pw-cancel" onclick="closePwModal()">ยกเลิก / Cancel</button>
+  </div>
+</div>
+
+
+<script>
+// ──────────────────────────────────────────────────
+// CLOCK
+// ──────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const time = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  const date = now.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const c = document.getElementById('clock');
+  const e = document.getElementById('entryTimePicker');
+  if (c) c.textContent = time;
+  if (e) e.textContent = time;
+  document.getElementById('entryTime').value = time;
+  const cd = document.getElementById('clockDate');
+  if (cd) cd.textContent = date;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ──────────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────────
+document.getElementById('visitDate').value = new Date().toISOString().split('T')[0];
+
+// workType toggle
+document.querySelectorAll('input[name="workType"]').forEach(r => {
+  r.addEventListener('change', () => {
+    document.getElementById('workTypeOtherField').style.display = r.value === 'other_wt' ? 'block' : 'none';
+  });
+});
+// hasSafety toggle
+document.querySelectorAll('input[name="hasSafety"]').forEach(r => {
+  r.addEventListener('change', () => {
+    document.getElementById('safetyOfficerField').style.display = r.value === 'yes' ? 'block' : 'none';
+  });
+});
+// activity other toggle
+document.getElementById('actOtherChk').addEventListener('change', function() {
+  document.getElementById('actOtherField').style.display = this.checked ? 'block' : 'none';
+});
+// PPE other toggle
+document.getElementById('ppeOtherChk').addEventListener('change', function() {
+  document.getElementById('ppeOtherField').style.display = this.checked ? 'block' : 'none';
+});
+
+// ──────────────────────────────────────────────────
+// TYPE SELECTION
+// ──────────────────────────────────────────────────
+let visitorType = null;
+function selectType(type) {
+  visitorType = type;
+  document.getElementById('typeContractor').classList.toggle('selected', type === 'contractor');
+  document.getElementById('typeVisitor').classList.toggle('selected', type === 'visitor');
+  const txt = document.getElementById('typeInfoText');
+  document.getElementById('typeInfo').style.display = 'block';
+  if (type === 'contractor') {
+    txt.innerHTML = '🔧 <strong>ช่างภายนอก:</strong> กรอก Work Permit + บันทึกเข้าพื้นที่ (4 ขั้นตอน)<br><em style="font-size:11px">Contractor: complete Work Permit + Visitor Record (4 steps).</em>';
+  } else {
+    txt.innerHTML = '👤 <strong>ผู้เยี่ยมชม:</strong> กรอกบันทึกการเข้าพื้นที่เท่านั้น<br><em style="font-size:11px">Visitor: Visitor Record form only.</em>';
+  }
+  document.getElementById('btnNext').disabled = false;
+}
+
+let selectedDept = '';
+function selectDept(dept) {
+  selectedDept = dept;
+  ['blow','print','cut','other_dept'].forEach(d => {
+    const el = document.getElementById('dept_' + d);
+    if (el) el.classList.toggle('selected', d === dept);
+  });
+  document.getElementById('deptOtherField').style.display = dept === 'other_dept' ? 'block' : 'none';
+}
+
+// ──────────────────────────────────────────────────
+// STEP NAVIGATION
+// ──────────────────────────────────────────────────
+let currentStep = 1;
+
+function updateSteps() {
+  for (let i = 1; i <= 4; i++) {
+    const dot = document.getElementById('dot' + i);
+    const lbl = document.getElementById('lbl' + i);
+    if (i < currentStep) { dot.className = 'step-dot done'; dot.textContent = '✓'; lbl.className = 'step-label'; }
+    else if (i === currentStep) { dot.className = 'step-dot active'; dot.textContent = i; lbl.className = 'step-label active'; }
+    else { dot.className = 'step-dot'; dot.textContent = i; lbl.className = 'step-label'; }
+    if (i < 4) document.getElementById('line' + i).className = 'step-line' + (i < currentStep ? ' done' : '');
+  }
+  document.getElementById('progressFill').style.width = ((currentStep - 1) / 3 * 100) + '%';
+}
+
+function showPage(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const pg = document.getElementById('page' + n);
+  if (pg) pg.classList.add('active');
+}
+
+function nextStep() {
+  if (!validateStep()) return;
+  if (currentStep < 4) {
+    currentStep++;
+    showPage(currentStep);
+    if (currentStep === 2) {
+      document.getElementById('contractorFields').style.display = visitorType === 'contractor' ? 'block' : 'none';
+      document.getElementById('contractorRules').style.display = visitorType === 'contractor' ? 'block' : 'none';
+    }
+    if (currentStep === 3) {
+      document.getElementById('ppeSec').style.display = visitorType === 'contractor' ? 'block' : 'none';
+    }
+    if (currentStep === 4) {
+      buildSummary();
+      document.getElementById('btnNext').textContent = '✓ ยืนยันและบันทึก / Submit';
+      document.getElementById('btnNext').disabled = true;
+    } else {
+      document.getElementById('btnNext').textContent = 'ถัดไป / Next →';
+      document.getElementById('btnNext').disabled = false;
+    }
+    document.getElementById('btnBack').style.display = currentStep > 1 ? 'block' : 'none';
+    updateSteps();
+    window.scrollTo(0, 0);
+  } else {
+    submitForm();
+  }
+}
+
+function prevStep() {
+  if (currentStep > 1) {
+    currentStep--;
+    showPage(currentStep);
+    document.getElementById('btnNext').textContent = 'ถัดไป / Next →';
+    document.getElementById('btnNext').disabled = false;
+    document.getElementById('btnBack').style.display = currentStep > 1 ? 'block' : 'none';
+    updateSteps();
+    window.scrollTo(0, 0);
+  }
+}
+
+function validateStep() {
+  if (currentStep === 1) {
+    if (!visitorType) { alert('กรุณาเลือกประเภท'); return false; }
+    return true;
+  }
+  if (currentStep === 2) {
+    if (!document.getElementById('name').value.trim()) { alert('กรุณากรอกชื่อ-สกุล'); return false; }
+    if (!document.getElementById('company').value.trim()) { alert('กรุณากรอกบริษัท/หน่วยงาน'); return false; }
+    if (!document.getElementById('purpose').value.trim()) { alert('กรุณากรอกวัตถุประสงค์'); return false; }
+    if (!selectedDept) { alert('กรุณาเลือกแผนกที่จะเข้า'); return false; }
+    if (selectedDept === 'other_dept' && !document.getElementById('deptOtherText').value.trim()) { alert('กรุณาระบุแผนก/พื้นที่'); return false; }
+    if (visitorType === 'contractor') {
+      if (!document.getElementById('workerCount').value) { alert('กรุณากรอกจำนวนผู้ปฏิบัติงาน'); return false; }
+      if (!document.querySelector('input[name="workType"]:checked')) { alert('กรุณาเลือกประเภทงาน'); return false; }
+    }
+  }
+  return true;
+}
+
+function toggleSubmit() {
+  document.getElementById('btnNext').disabled = !document.getElementById('agreeCheck').checked;
+}
+
+// ──────────────────────────────────────────────────
+// SUMMARY
+// ──────────────────────────────────────────────────
+function buildSummary() {
+  const actLabels = { drill:'เจาะสว่าน', weld:'เชื่อมไฟฟ้า', cut:'ตัด/เจียร', excavate:'ขุดเจาะ', radiation:'งานรังสี', electrical:'งานไฟฟ้า', height:'ทำงานบนที่สูง', other_act:'อื่นๆ' };
+  const acts = [...document.querySelectorAll('input[name="activity"]:checked')].map(x => actLabels[x.value] || x.value);
+  const actOtherTxt = document.getElementById('actOtherText').value;
+  if (actOtherTxt) acts.push(actOtherTxt);
+
+  const deptLabels = { blow:'แผนกเป่า', print:'แผนกพิมพ์', cut:'แผนกตัดสลีด', other_dept:'อื่นๆ' };
+  const deptDisplay = selectedDept ? ((deptLabels[selectedDept] || selectedDept) + (selectedDept === 'other_dept' && document.getElementById('deptOtherText').value ? ': ' + document.getElementById('deptOtherText').value : '')) : '—';
+
+  const rows = [
+    ['ประเภท', visitorType === 'contractor' ? '🔧 ช่างภายนอก' : '👤 ผู้เยี่ยมชม'],
+    ['ชื่อ-สกุล', document.getElementById('name').value],
+    ['บริษัท', document.getElementById('company').value],
+    ['วันที่', document.getElementById('visitDate').value],
+    ['เวลาเข้า', document.getElementById('entryTime').value],
+    ['วัตถุประสงค์', document.getElementById('purpose').value],
+    ['แผนกที่เข้า', deptDisplay],
+  ];
+  if (visitorType === 'contractor') {
+    const wt = document.querySelector('input[name="workType"]:checked');
+    const wtLabel = { install:'ติดตั้งใหม่', repair:'ซ่อมบำรุง', other_wt:'อื่นๆ' };
+    rows.push(['จำนวนผู้ปฏิบัติงาน', (document.getElementById('workerCount').value || '—') + ' คน']);
+    rows.push(['ประเภทงาน', wt ? (wtLabel[wt.value] || wt.value) : '—']);
+    if (acts.length) rows.push(['ลักษณะงาน', acts.join(', ')]);
+  }
+  const g = document.querySelector('input[name="glasses"]:checked');
+  const t = document.querySelector('input[name="travel"]:checked');
+  const s = document.querySelector('input[name="sick"]:checked');
+  rows.push(['แว่นตา/Lens', g ? (g.value === 'yes' ? 'ใช่' : 'ไม่ใช่') : '—']);
+  rows.push(['ต่างประเทศ 7 วัน', t ? (t.value === 'yes' ? '⚠️ ใช่' : 'ไม่ใช่') : '—']);
+  rows.push(['อาการเจ็บป่วย', s ? (s.value === 'yes' ? '⚠️ มีอาการ' : 'ไม่มี ✓') : '—']);
+
+  document.getElementById('summaryContent').innerHTML = rows.map(r =>
+    `<div class="record-row"><span class="record-key">${r[0]}</span><span class="record-val">${r[1]}</span></div>`
+  ).join('');
+}
+
+// ──────────────────────────────────────────────────
+// SUBMIT
+// ──────────────────────────────────────────────────
+function submitForm() {
+  const ref = 'WP-' + Date.now().toString(36).toUpperCase().slice(-6);
+  const ppe = [...document.querySelectorAll('input[name="ppe"]:checked')].map(x => x.value);
+  const activities = [...document.querySelectorAll('input[name="activity"]:checked')].map(x => x.value);
+  const wt = document.querySelector('input[name="workType"]:checked');
+
+  const record = {
+    id: ref,
+    timestamp: new Date().toISOString(),
+    entryTime: document.getElementById('entryTime').value,
+    visitDate: document.getElementById('visitDate').value,
+    type: visitorType,
+    name: document.getElementById('name').value,
+    company: document.getElementById('company').value,
+    purpose: document.getElementById('purpose').value,
+    dept: selectedDept || null,
+    deptOther: selectedDept === 'other_dept' ? (document.getElementById('deptOtherText').value || null) : null,
+    // contractor
+    workerCount: visitorType === 'contractor' ? (document.getElementById('workerCount').value || null) : null,
+    workType: visitorType === 'contractor' ? (wt?.value || null) : null,
+    workTypeOther: document.getElementById('workTypeOther').value || null,
+    activities,
+    activityOther: document.getElementById('actOtherText').value || null,
+    hasSafety: document.querySelector('input[name="hasSafety"]:checked')?.value || null,
+    safetyOfficer: document.getElementById('safetyOfficer').value || null,
+    // health
+    glasses: document.querySelector('input[name="glasses"]:checked')?.value || null,
+    travel: document.querySelector('input[name="travel"]:checked')?.value || null,
+    sick: document.querySelector('input[name="sick"]:checked')?.value || null,
+    // ppe
+    ppe,
+    ppeOther: document.getElementById('ppeOtherText').value || null,
+    borrowEquipment: visitorType === 'contractor' ? (document.getElementById('borrowEquipment').value || null) : null,
+    // approval (filled by staff)
+    status: 'pending',
+    entryApprovedBy: null,
+    entryApprovedAt: null,
+    exitApprovedBy: null,
+    exitApprovedAt: null,
+    exitRemark: null,
+  };
+
+  // Save to central API (works across all devices)
+  const apiBase = window.location.origin;
+  fetch(apiBase + '/api/visitors', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(record),
+  }).catch(() => {
+    // Fallback: save to localStorage if API is unavailable
+    const all = JSON.parse(localStorage.getItem('wangpack_records') || '[]');
+    all.push(record);
+    localStorage.setItem('wangpack_records', JSON.stringify(all));
+  });
+
+  // Show success
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('pageSuccess').classList.add('active');
+  document.getElementById('bottomBar').style.display = 'none';
+  document.getElementById('stepsBar').style.display = 'none';
+  document.querySelector('.progress-bar').style.display = 'none';
+
+  document.getElementById('refCode').textContent = 'REF: ' + ref;
+  document.getElementById('recordCard').innerHTML = [
+    ['ชื่อ', record.name],
+    ['บริษัท', record.company],
+    ['วันที่', record.visitDate],
+    ['เวลาเข้า', record.entryTime],
+    ['ประเภท', record.type === 'contractor' ? '🔧 ช่างภายนอก' : '👤 ผู้เยี่ยมชม'],
+  ].map(r => `<div class="record-row"><span class="record-key">${r[0]}</span><span class="record-val">${r[1]}</span></div>`).join('');
+}
+
+function resetForm() { location.reload(); }
+
+// ──────────────────────────────────────────────────
+// SCREEN SWITCHING
+// ──────────────────────────────────────────────────
+function goToStaff() {
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwError').textContent = '';
+  document.getElementById('pwOverlay').classList.add('open');
+}
+function checkPassword() {
+  const val = document.getElementById('pwInput').value;
+  if (val === '1234') {
+    document.getElementById('pwOverlay').classList.remove('open');
+    document.getElementById('screenForm').style.display = 'none';
+    document.getElementById('screenStaff').style.display = 'block';
+    loadStaffLists();
+  } else {
+    document.getElementById('pwError').textContent = '❌ รหัสผ่านไม่ถูกต้อง / Incorrect password';
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwInput').focus();
+  }
+}
+function closePwModal() {
+  document.getElementById('pwOverlay').classList.remove('open');
+}
+function goToForm() {
+  document.getElementById('screenStaff').style.display = 'none';
+  document.getElementById('screenForm').style.display = 'block';
+}
+
+// ──────────────────────────────────────────────────
+// STAFF LISTS
+// ──────────────────────────────────────────────────
+function loadStaffLists() {
+  const all = JSON.parse(localStorage.getItem('wangpack_records') || '[]');
+  const today = new Date().toISOString().split('T')[0];
+  const todays = all.filter(r => r.visitDate === today);
+
+  renderList('listPending', todays.filter(r => r.status === 'pending'), 'pending');
+  renderList('listInside',  todays.filter(r => r.status === 'inside'),  'inside');
+  renderList('listExited',  todays.filter(r => r.status === 'exited'),  'exited');
+}
+
+function renderList(containerId, records, mode) {
+  const el = document.getElementById(containerId);
+  const emptyMsg = { pending:'ไม่มีรายการรออนุมัติ', inside:'ไม่มีผู้เข้าพื้นที่ในขณะนี้', exited:'ยังไม่มีรายการออกพื้นที่วันนี้' };
+  if (!records.length) { el.innerHTML = `<div class="empty-state">${emptyMsg[mode]}</div>`; return; }
+
+  el.innerHTML = records.map(r => {
+    const typeTag = r.type === 'contractor' ? '🔧 ช่างภายนอก' : '👤 ผู้เยี่ยมชม';
+    const sickWarn = r.sick === 'yes' ? ' <span style="color:var(--red)">⚠️ มีอาการ</span>' : '';
+    const deptLabel = { blow:'แผนกเป่า', print:'แผนกพิมพ์', cut:'แผนกตัดสลีด', other_dept:'อื่นๆ' };
+    const deptTag = r.dept ? `<div class="e-meta" style="color:var(--blue);margin-top:2px;">${deptLabel[r.dept] || r.dept}${r.deptOther ? ': '+r.deptOther : ''}</div>` : '';
+    const remarkTag = r.exitRemark ? `<div class="e-remark">📝 หมายเหตุออก: ${r.exitRemark}</div>` : '';
+    let actionBtn = '';
+    if (mode === 'pending') actionBtn = `<button class="btn-approve-in" onclick="openModal('${r.id}','entry')">✓ อนุมัติเข้าพื้นที่</button>`;
+    if (mode === 'inside')  actionBtn = `<button class="btn-approve-out" onclick="openModal('${r.id}','exit')">🚪 บันทึกออกพื้นที่</button>`;
+
+    return `<div class="entry-card">
+      <div class="e-ref">${r.id}</div>
+      <div class="e-name">${r.name}${sickWarn}</div>
+      <div class="e-meta">${r.company} · ${typeTag} · เข้า ${r.entryTime || '—'}</div>
+      ${deptTag}
+      ${r.entryApprovedBy ? `<div class="e-approver">✓ อนุมัติเข้าโดย: ${r.entryApprovedBy} เวลา ${r.entryApprovedAt}</div>` : ''}
+      ${r.exitApprovedBy  ? `<div class="e-approver">🚪 บันทึกออกโดย: ${r.exitApprovedBy} เวลา ${r.exitApprovedAt}</div>` : ''}
+      ${remarkTag}
+      <div class="entry-card-actions">
+        ${actionBtn ? actionBtn : ''}
+        <button class="btn-edit-rec" onclick="openCancelModal('${r.id}')">✏️ แก้ไข/ยกเลิก</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ──────────────────────────────────────────────────
+// MODAL
+// ──────────────────────────────────────────────────
+let modalId = null, modalMode = null;
+
+function openModal(id, mode) {
+  const all = JSON.parse(localStorage.getItem('wangpack_records') || '[]');
+  const r = all.find(x => x.id === id);
+  if (!r) return;
+  modalId = id; modalMode = mode;
+
+  document.getElementById('modalTitle').textContent = mode === 'entry' ? '✓ อนุมัติการเข้าพื้นที่' : '🚪 บันทึกการออกพื้นที่';
+  document.getElementById('modalDesc').textContent = mode === 'entry'
+    ? 'ตรวจสอบสุขลักษณะและความปลอดภัยก่อนอนุมัติ / Verify health & safety then approve entry'
+    : 'ระบุชื่อผู้รับผิดชอบและบันทึกเวลาออกพื้นที่ / Record exit time and approver name';
+  document.getElementById('modalRef').textContent = `${r.id}  ·  ${r.name}  ·  ${r.company}`;
+  document.getElementById('approverName').value = '';
+  document.getElementById('exitRemark').value = '';
+  document.getElementById('exitRemarkField').style.display = mode === 'exit' ? 'block' : 'none';
+
+  const btn = document.getElementById('modalConfirmBtn');
+  btn.textContent = mode === 'entry' ? '✓ อนุมัติเข้าพื้นที่' : '🚪 บันทึกออกพื้นที่';
+  btn.className = 'modal-btn modal-btn-confirm' + (mode === 'exit' ? ' exit' : '');
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function confirmAction() {
+  const approver = document.getElementById('approverName').value.trim();
+  if (!approver) { alert('กรุณากรอกชื่อผู้อนุมัติ / Please enter approver name'); return; }
+
+  const all = JSON.parse(localStorage.getItem('wangpack_records') || '[]');
+  const idx = all.findIndex(x => x.id === modalId);
+  if (idx === -1) return;
+
+  const now = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+
+  if (modalMode === 'entry') {
+    all[idx].status = 'inside';
+    all[idx].entryApprovedBy = approver;
+    all[idx].entryApprovedAt = now;
+  } else {
+    all[idx].status = 'exited';
+    all[idx].exitApprovedBy = approver;
+    all[idx].exitApprovedAt = now;
+    all[idx].exitRemark = document.getElementById('exitRemark').value || null;
+  }
+
+  localStorage.setItem('wangpack_records', JSON.stringify(all));
+  closeModal();
+  loadStaffLists();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+// ──────────────────────────────────────────────────
+// CANCEL / EDIT MODAL
+// ──────────────────────────────────────────────────
+let cancelTargetId = null;
+
+function openCancelModal(id) {
+  cancelTargetId = id;
+  const all = JSON.parse(localStorage.getItem('wangpack_records') || '[]');
+  const r = all.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('cancelModalRef').textContent = `${r.id}  ·  ${r.name}  ·  ${r.company}`;
+  document.getElementById('cancelOperatorName').value = '';
+  document.getElementById('cancelReason').value = '';
+  document.getElementById('cancelModalOverlay').classList.add('open');
+}
+
+function closeCancelModal() {
+  document.getElementById('cancelModalOverlay').classList.remove('open');
+  cancelTargetId = null;
+}
+
+function confirmCancel() {
+  const op = document.getElementById('cancelOperatorName').value.trim();
+  const reason = document.getElementById('cancelReason').value.trim();
+  if (!op || !reason) { alert('กรุณากรอกชื่อผู้ดำเนินการและเหตุผล'); return; }
+  if (!confirm('ยืนยันการยกเลิกรายการนี้?')) return;
+  const all = JSON.parse(localStorage.getItem('wangpack_records') || '[]');
+  const idx = all.findIndex(x => x.id === cancelTargetId);
+  if (idx === -1) return;
+  all[idx].status = 'cancelled';
+  all[idx].cancelBy = op;
+  all[idx].cancelReason = reason;
+  all[idx].cancelAt = new Date().toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false });
+  localStorage.setItem('wangpack_records', JSON.stringify(all));
+  closeCancelModal();
+  loadStaffLists();
+}
+
+function confirmEdit() {
+  const op = document.getElementById('cancelOperatorName').value.trim();
+  const reason = document.getElementById('cancelReason').value.trim();
+  if (!op || !reason) { alert('กรุณากรอกชื่อผู้ดำเนินการและเหตุผล'); return; }
+  const all = JSON.parse(localStorage.getItem('wangpack_records') || '[]');
+  const idx = all.findIndex(x => x.id === cancelTargetId);
+  if (idx === -1) return;
+  // Reset to pending so staff can re-approve
+  all[idx].status = 'pending';
+  all[idx].entryApprovedBy = null;
+  all[idx].entryApprovedAt = null;
+  all[idx].exitApprovedBy = null;
+  all[idx].exitApprovedAt = null;
+  all[idx].exitRemark = null;
+  all[idx].editBy = op;
+  all[idx].editReason = reason;
+  localStorage.setItem('wangpack_records', JSON.stringify(all));
+  closeCancelModal();
+  loadStaffLists();
+}
+</script>
+<script src="https://replit-cdn.com/replit-pill/replit-pill.global.js" data-repl-id="f9b8a935-3d7a-4f80-8d92-ea9ad20fff0d"></script></body>
+</html>
